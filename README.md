@@ -87,3 +87,27 @@ export HANDS_BEARER_TOKEN='<publisher deploy token>'
 - [Hands agent guide](https://hands.build/docs/agent-guide/)
 - [Hands Android SDK](https://hands.build/docs/android-sdk/)
 
+## GitLab CI
+
+- [`examples/gitlab-ci/android-publish.gitlab-ci.yml`](examples/gitlab-ci/android-publish.gitlab-ci.yml)
+  — build stage placeholder + draft publish with `hands builds publish-android`.
+- [`examples/gitlab-ci/ios-publish.gitlab-ci.yml`](examples/gitlab-ci/ios-publish.gitlab-ci.yml)
+  — IPA + dSYM draft publish; TestFlight upload happens server-side in Hands
+  afterwards.
+
+## iOS on GitHub Actions
+
+- [`examples/github-actions/ios-publish.yml`](examples/github-actions/ios-publish.yml)
+  — archive/export placeholder + `hands builds publish-ios` draft publish.
+  Do not add App Store Connect keys to CI: after review, Hands uploads to
+  TestFlight server-side with its stored credential
+  ([docs](https://hands.build/docs/ios-testflight/)).
+
+## Any other CI
+
+- [`examples/generic/publish-android.sh`](examples/generic/publish-android.sh)
+- [`examples/generic/publish-ios.sh`](examples/generic/publish-ios.sh)
+
+Plain shell, driven by environment variables — drop into Jenkins, Buildkite,
+or anything that can run bash and npm.
+

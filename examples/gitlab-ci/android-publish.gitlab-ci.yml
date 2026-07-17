@@ -1,0 +1,38 @@
+# Publish a signed Android APK to Hands from GitLab CI.
+#
+# Setup: create an app-scoped publisher deploy token (App Settings → Deploy
+# Tokens) and store it as a masked CI/CD variable named HANDS_BEARER_TOKEN.
+# Publishes a DRAFT release: review the changelog in Hands before going live.
+stages:
+  - build
+  - publish
+
+build_apk:
+  stage: build
+  image: eclipse-temurin:17
+  script:
+    # Replace with your own build + signing. Only requirement: a signed APK.
+    - ./gradlew :app:assembleRelease
+  artifacts:
+    paths:
+      - app/build/outputs/apk/release/app-release.apk
+    expire_in: 1 day
+
+publish_hands:
+  stage: publish
+  image: node:22
+  script:
+    - npm install -g @botiverse/hands-cli
+    - git log --no-merges --pretty='- %s' -15 > changelog.txt
+    - >
+      hands builds publish-android "$HANDS_APP_SLUG"
+      --apk app/build/outputs/apk/release/app-release.apk
+      --channel "${HANDS_CHANNEL:-preview}"
+      --version-name "$VERSION_NAME"
+      --version-code "$VERSION_CODE"
+      --changelog-file changelog.txt
+      --source-commit "$CI_COMMIT_SHA"
+      --ci-provider gitlab-ci
+      --ci-run-id "$CI_PIPELINE_ID"
+      --ci-url "$CI_PIPELINE_URL"
+      --draft
