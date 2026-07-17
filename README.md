@@ -87,3 +87,40 @@ export HANDS_BEARER_TOKEN='<publisher deploy token>'
 - [Hands agent guide](https://hands.build/docs/agent-guide/)
 - [Hands Android SDK](https://hands.build/docs/android-sdk/)
 
+## GitLab CI
+
+- [`examples/gitlab-ci/android-publish.gitlab-ci.yml`](examples/gitlab-ci/android-publish.gitlab-ci.yml)
+  — build stage placeholder + draft publish with `hands builds publish-android`.
+- [`examples/gitlab-ci/ios-publish.gitlab-ci.yml`](examples/gitlab-ci/ios-publish.gitlab-ci.yml)
+  — IPA + dSYM draft publish; TestFlight upload happens server-side in Hands
+  afterwards.
+
+## iOS on GitHub Actions
+
+- [`examples/github-actions/ios-publish.yml`](examples/github-actions/ios-publish.yml)
+  — archive/export placeholder + `hands builds publish-ios` draft publish.
+  The App Store Connect credential is managed only in Hands; CI needs just
+  the signing material and the Hands deploy token. After the draft is
+  published, Hands uploads the build to TestFlight server-side with its
+  stored credential ([docs](https://hands.build/docs/ios-testflight/)).
+
+## Electron
+
+- [`examples/github-actions/electron-publish.yml`](examples/github-actions/electron-publish.yml)
+  — per-platform matrix (win32/darwin/linux); each platform publishes one
+  draft into its own platform channel (`main-win32`/`main-darwin`/
+  `main-linux`) so activations never supersede another platform. Create the
+  three channels in the app (Hands Console -> Channels) before the first
+  run — the CLI does not create channels on publish.
+- [`examples/generic/publish-electron.sh`](examples/generic/publish-electron.sh)
+  — env-driven, run once per platform, each into its own platform channel.
+
+## Any other CI
+
+- [`examples/generic/publish-android.sh`](examples/generic/publish-android.sh)
+- [`examples/generic/publish-ios.sh`](examples/generic/publish-ios.sh)
+- [`examples/generic/publish-electron.sh`](examples/generic/publish-electron.sh)
+
+Plain shell, driven by environment variables — drop into Jenkins, Buildkite,
+or anything that can run bash and npm.
+
