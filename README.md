@@ -103,10 +103,19 @@ export HANDS_BEARER_TOKEN='<publisher deploy token>'
   TestFlight server-side with its stored credential
   ([docs](https://hands.build/docs/ios-testflight/)).
 
+## Electron
+
+- [`examples/github-actions/electron-publish.yml`](examples/github-actions/electron-publish.yml)
+  — per-platform matrix (win32/darwin/linux) publishing installer +
+  electron-updater metadata (+ blockmap) as a draft release.
+- [`examples/generic/publish-electron.sh`](examples/generic/publish-electron.sh)
+  — env-driven, run once per platform/arch.
+
 ## Any other CI
 
 - [`examples/generic/publish-android.sh`](examples/generic/publish-android.sh)
 - [`examples/generic/publish-ios.sh`](examples/generic/publish-ios.sh)
+- [`examples/generic/publish-electron.sh`](examples/generic/publish-electron.sh)
 
 Plain shell, driven by environment variables — drop into Jenkins, Buildkite,
 or anything that can run bash and npm.

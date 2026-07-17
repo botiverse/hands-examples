@@ -1,0 +1,76 @@
+# Publish Electron installers to Hands from GitHub Actions.
+#
+# Runs once per platform (matrix): Hands versions each platform's installer +
+# electron-updater metadata (latest*.yml, .blockmap) so the app's built-in
+# update check serves them.
+name: Publish Electron to Hands
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_name:
+        required: true
+      version_code:
+        required: true
+      channel:
+        required: true
+        default: "main"
+
+jobs:
+  publish:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win32
+            arch: x64
+            metadata: dist/latest.yml
+            installer: dist/App Setup.exe
+            blockmap: dist/App Setup.exe.blockmap
+          - os: macos-latest
+            platform: darwin
+            arch: arm64
+            metadata: dist/latest-mac.yml
+            installer: dist/App.dmg
+            blockmap: dist/App.dmg.blockmap
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            metadata: dist/latest-linux.yml
+            installer: dist/App.AppImage
+            blockmap: ""
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # --- Replace with your own electron-builder step (signing included). ---
+      - name: Build installers
+        run: |
+          echo "e.g. npx electron-builder --publish never"
+          echo "requirement: installer + latest*.yml (+ .blockmap) in dist/"
+      # ----------------------------------------------------------------------
+
+      - name: Install Hands CLI
+        run: npm install -g @botiverse/hands-cli
+
+      - name: Publish draft release to Hands
+        shell: bash
+        env:
+          HANDS_BEARER_TOKEN: ${{ secrets.HANDS_BEARER_TOKEN }}
+        run: |
+          git log --no-merges --pretty='- %s' -15 > changelog.txt
+          ARGS=(
+            --channel "${{ inputs.channel }}"
+            --version-name "${{ inputs.version_name }}"
+            --version-code "${{ inputs.version_code }}"
+            --platform "${{ matrix.platform }}"
+            --arch "${{ matrix.arch }}"
+            --metadata "${{ matrix.metadata }}"
+            --installer "${{ matrix.installer }}"
+            --changelog-file ./changelog.txt
+            --draft
+          )
+          if [ -n "${{ matrix.blockmap }}" ]; then
+            ARGS+=(--blockmap "${{ matrix.blockmap }}")
+          fi
+          hands builds publish-electron "$HANDS_APP_SLUG" "${ARGS[@]}"
