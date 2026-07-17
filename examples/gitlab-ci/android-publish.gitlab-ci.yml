@@ -3,6 +3,9 @@
 # Setup: create an app-scoped publisher deploy token (App Settings → Deploy
 # Tokens) and store it as a masked CI/CD variable named HANDS_BEARER_TOKEN.
 # Publishes a DRAFT release: review the changelog in Hands before going live.
+variables:
+  HANDS_APP_SLUG: your-app-slug   # <-- your Hands app slug
+
 stages:
   - build
   - publish
@@ -22,7 +25,7 @@ publish_hands:
   stage: publish
   image: node:22
   script:
-    - npm install -g @botiverse/hands-cli
+    - npm install -g @botiverse/hands-cli@0.5.1
     - git log --no-merges --pretty='- %s' -15 > changelog.txt
     - >
       hands builds publish-android "$HANDS_APP_SLUG"

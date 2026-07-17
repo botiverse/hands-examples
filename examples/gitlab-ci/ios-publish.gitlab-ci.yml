@@ -1,6 +1,9 @@
 # Publish a signed iOS IPA (+ dSYM) to Hands from GitLab CI.
 # TestFlight uploads happen server-side in Hands afterwards — no ASC keys in CI.
 # Docs: https://hands.build/docs/ios-testflight/
+variables:
+  HANDS_APP_SLUG: your-app-slug   # <-- your Hands app slug
+
 stages:
   - build
   - publish
@@ -21,7 +24,7 @@ publish_hands:
   stage: publish
   image: node:22
   script:
-    - npm install -g @botiverse/hands-cli
+    - npm install -g @botiverse/hands-cli@0.5.1
     - git log --no-merges --pretty='- %s' -15 > changelog.txt
     - >
       hands builds publish-ios "$HANDS_APP_SLUG"

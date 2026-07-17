@@ -17,6 +17,9 @@ on:
         required: true
         default: "main"
 
+env:
+  HANDS_APP_SLUG: your-app-slug   # <-- your Hands app slug
+
 jobs:
   publish:
     runs-on: macos-latest
@@ -31,7 +34,7 @@ jobs:
       # ----------------------------------------------------------------------
 
       - name: Install Hands CLI
-        run: npm install -g @botiverse/hands-cli
+        run: npm install -g @botiverse/hands-cli@0.5.1
 
       - name: Publish draft release to Hands
         env:

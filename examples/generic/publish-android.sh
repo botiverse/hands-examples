@@ -4,7 +4,7 @@
 #      VERSION_NAME, VERSION_CODE, optional HANDS_CHANNEL (default preview).
 set -euo pipefail
 : "${HANDS_BEARER_TOKEN:?}" "${HANDS_APP_SLUG:?}" "${APK_PATH:?}" "${VERSION_NAME:?}" "${VERSION_CODE:?}"
-npm install -g @botiverse/hands-cli >/dev/null
+npm install -g @botiverse/hands-cli@0.5.1 >/dev/null
 git log --no-merges --pretty='- %s' -15 > changelog.txt 2>/dev/null || echo "- release ${VERSION_NAME}" > changelog.txt
 hands builds publish-android "${HANDS_APP_SLUG}" \
   --apk "${APK_PATH}" \

@@ -1,8 +1,8 @@
 # Publish Electron installers to Hands from GitHub Actions.
 #
-# Runs once per platform (matrix): Hands versions each platform's installer +
-# electron-updater metadata (latest*.yml, .blockmap) so the app's built-in
-# update check serves them.
+# Shape: each platform builds and uploads its artifacts; ONE publish job then
+# creates a single multi-asset draft release (the metadata/installer/blockmap
+# flags are repeatable). One release carries all platforms.
 name: Publish Electron to Hands
 
 on:
@@ -16,29 +16,20 @@ on:
         required: true
         default: "main"
 
+env:
+  HANDS_APP_SLUG: your-app-slug   # <-- your Hands app slug
+
 jobs:
-  publish:
+  build:
     strategy:
       matrix:
         include:
           - os: windows-latest
             platform: win32
-            arch: x64
-            metadata: dist/latest.yml
-            installer: dist/App Setup.exe
-            blockmap: dist/App Setup.exe.blockmap
           - os: macos-latest
             platform: darwin
-            arch: arm64
-            metadata: dist/latest-mac.yml
-            installer: dist/App.dmg
-            blockmap: dist/App.dmg.blockmap
           - os: ubuntu-latest
             platform: linux
-            arch: x64
-            metadata: dist/latest-linux.yml
-            installer: dist/App.AppImage
-            blockmap: ""
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -50,27 +41,43 @@ jobs:
           echo "requirement: installer + latest*.yml (+ .blockmap) in dist/"
       # ----------------------------------------------------------------------
 
-      - name: Install Hands CLI
-        run: npm install -g @botiverse/hands-cli
+      - uses: actions/upload-artifact@v4
+        with:
+          name: electron-${{ matrix.platform }}
+          path: |
+            dist/latest*.yml
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.blockmap
 
-      - name: Publish draft release to Hands
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist-all/
+
+      - name: Install Hands CLI
+        run: npm install -g @botiverse/hands-cli@0.5.1
+
+      - name: Publish one multi-asset draft release
         shell: bash
         env:
-          HANDS_BEARER_TOKEN: ${{ secrets.HANDS_BEARER_TOKEN }}
+          HANDS_BEARER_TOKEN: ${{ secrets.HANDS_DEPLOY_TOKEN }}
         run: |
           git log --no-merges --pretty='- %s' -15 > changelog.txt
           ARGS=(
             --channel "${{ inputs.channel }}"
             --version-name "${{ inputs.version_name }}"
             --version-code "${{ inputs.version_code }}"
-            --platform "${{ matrix.platform }}"
-            --arch "${{ matrix.arch }}"
-            --metadata "${{ matrix.metadata }}"
-            --installer "${{ matrix.installer }}"
             --changelog-file ./changelog.txt
             --draft
           )
-          if [ -n "${{ matrix.blockmap }}" ]; then
-            ARGS+=(--blockmap "${{ matrix.blockmap }}")
-          fi
+          while IFS= read -r f; do ARGS+=(--metadata "$f"); done < <(find dist-all -name 'latest*.yml')
+          while IFS= read -r f; do ARGS+=(--installer "$f"); done < <(find dist-all \( -name '*.exe' -o -name '*.dmg' -o -name '*.AppImage' \))
+          while IFS= read -r f; do ARGS+=(--blockmap "$f"); done < <(find dist-all -name '*.blockmap')
           hands builds publish-electron "$HANDS_APP_SLUG" "${ARGS[@]}"

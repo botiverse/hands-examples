@@ -99,7 +99,7 @@ export HANDS_BEARER_TOKEN='<publisher deploy token>'
 
 - [`examples/github-actions/ios-publish.yml`](examples/github-actions/ios-publish.yml)
   — archive/export placeholder + `hands builds publish-ios` draft publish.
-  Do not add App Store Connect keys to CI: after review, Hands uploads to
+  The App Store Connect credential is managed only in Hands; CI needs just the signing material and the Hands deploy token.
   TestFlight server-side with its stored credential
   ([docs](https://hands.build/docs/ios-testflight/)).
 
@@ -109,7 +109,7 @@ export HANDS_BEARER_TOKEN='<publisher deploy token>'
   — per-platform matrix (win32/darwin/linux) publishing installer +
   electron-updater metadata (+ blockmap) as a draft release.
 - [`examples/generic/publish-electron.sh`](examples/generic/publish-electron.sh)
-  — env-driven, run once per platform/arch.
+  — env-driven, single multi-asset publish; run the matrix builds first.
 
 ## Any other CI
 
