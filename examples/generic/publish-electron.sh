@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Publish Electron installers to Hands from any CI. For multi-platform apps,
-# collect all platforms' artifacts first and pass repeated --metadata/
-# --installer/--blockmap flags in ONE invocation (single multi-asset release).
+# Publish ONE platform's Electron installer to Hands from any CI. Run once per
+# platform, each into its own platform channel (e.g. main-win32/main-darwin/
+# main-linux) so activations never supersede another platform's release.
 # Env: HANDS_BEARER_TOKEN, HANDS_APP_SLUG, VERSION_NAME, VERSION_CODE,
 #      PLATFORM (win32|darwin|linux), ARCH, METADATA_PATH (latest*.yml),
 #      INSTALLER_PATH, optional BLOCKMAP_PATH, optional HANDS_CHANNEL.
@@ -11,7 +11,7 @@ set -euo pipefail
 npm install -g @botiverse/hands-cli@0.5.1 >/dev/null
 git log --no-merges --pretty='- %s' -15 > changelog.txt 2>/dev/null || echo "- release ${VERSION_NAME}" > changelog.txt
 ARGS=(
-  --channel "${HANDS_CHANNEL:-main}"
+  --channel "${HANDS_CHANNEL:-main-${PLATFORM}}"
   --version-name "${VERSION_NAME}"
   --version-code "${VERSION_CODE}"
   --platform "${PLATFORM}"

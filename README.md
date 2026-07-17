@@ -106,10 +106,11 @@ export HANDS_BEARER_TOKEN='<publisher deploy token>'
 ## Electron
 
 - [`examples/github-actions/electron-publish.yml`](examples/github-actions/electron-publish.yml)
-  — per-platform matrix (win32/darwin/linux) publishing installer +
-  electron-updater metadata (+ blockmap) as a draft release.
+  — per-platform matrix (win32/darwin/linux); each platform publishes one
+  draft into its own platform channel (`main-win32`/`main-darwin`/
+  `main-linux`) so activations never supersede another platform.
 - [`examples/generic/publish-electron.sh`](examples/generic/publish-electron.sh)
-  — env-driven, single multi-asset publish; run the matrix builds first.
+  — env-driven, run once per platform, each into its own platform channel.
 
 ## Any other CI
 
