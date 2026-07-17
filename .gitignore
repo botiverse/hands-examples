@@ -1,0 +1,11 @@
+.DS_Store
+node_modules/
+dist/
+*.apk
+*.aab
+*.ipa
+*.p8
+*.p12
+*.jks
+*.keystore
+

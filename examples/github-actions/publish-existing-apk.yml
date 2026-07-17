@@ -1,0 +1,40 @@
+name: Publish an existing APK to Hands
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: Android version name
+        required: true
+        type: string
+      version_code:
+        description: Android version code
+        required: true
+        type: number
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Replace this step with actions/download-artifact, a release download,
+      # or your build system's artifact fetch command.
+      - name: Fetch signed APK
+        run: |
+          mkdir -p dist
+          cp path/to/your/signed-app.apk dist/app-release.apk
+
+      - name: Publish draft to Hands
+        uses: botiverse/hands-examples/publish-android@v1
+        with:
+          app: my-android-app
+          apk: dist/app-release.apk
+          channel: preview
+          version-name: ${{ inputs.version_name }}
+          version-code: ${{ inputs.version_code }}
+          hands-token: ${{ secrets.HANDS_BEARER_TOKEN }}
+
