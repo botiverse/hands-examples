@@ -99,16 +99,19 @@ export HANDS_BEARER_TOKEN='<publisher deploy token>'
 
 - [`examples/github-actions/ios-publish.yml`](examples/github-actions/ios-publish.yml)
   — archive/export placeholder + `hands builds publish-ios` draft publish.
-  The App Store Connect credential is managed only in Hands; CI needs just the signing material and the Hands deploy token.
-  TestFlight server-side with its stored credential
-  ([docs](https://hands.build/docs/ios-testflight/)).
+  The App Store Connect credential is managed only in Hands; CI needs just
+  the signing material and the Hands deploy token. After the draft is
+  published, Hands uploads the build to TestFlight server-side with its
+  stored credential ([docs](https://hands.build/docs/ios-testflight/)).
 
 ## Electron
 
 - [`examples/github-actions/electron-publish.yml`](examples/github-actions/electron-publish.yml)
   — per-platform matrix (win32/darwin/linux); each platform publishes one
   draft into its own platform channel (`main-win32`/`main-darwin`/
-  `main-linux`) so activations never supersede another platform.
+  `main-linux`) so activations never supersede another platform. Create the
+  three channels in the app (Hands Console -> Channels) before the first
+  run — the CLI does not create channels on publish.
 - [`examples/generic/publish-electron.sh`](examples/generic/publish-electron.sh)
   — env-driven, run once per platform, each into its own platform channel.
 

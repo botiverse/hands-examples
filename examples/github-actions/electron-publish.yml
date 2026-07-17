@@ -4,6 +4,10 @@
 # its own platform channel (main-win32 / main-darwin / main-linux), so
 # activations never supersede another platform's release. Point each
 # platform's electron-updater generic-provider URL at its own channel.
+#
+# The CLI does not create channels: create the three platform channels in the
+# app first (Hands Console -> app -> Channels), or point the matrix at
+# channels that already exist.
 name: Publish Electron to Hands
 
 on:
@@ -61,7 +65,7 @@ jobs:
       - name: Publish platform draft release
         shell: bash
         env:
-          HANDS_BEARER_TOKEN: ${{ secrets.HANDS_DEPLOY_TOKEN }}
+          HANDS_BEARER_TOKEN: ${{ secrets.HANDS_BEARER_TOKEN }}
         run: |
           git log --no-merges --pretty='- %s' -15 > changelog.txt
           ARGS=(

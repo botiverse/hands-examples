@@ -2,6 +2,7 @@
 # Publish ONE platform's Electron installer to Hands from any CI. Run once per
 # platform, each into its own platform channel (e.g. main-win32/main-darwin/
 # main-linux) so activations never supersede another platform's release.
+# Channels are not auto-created: create them in the Hands Console first.
 # Env: HANDS_BEARER_TOKEN, HANDS_APP_SLUG, VERSION_NAME, VERSION_CODE,
 #      PLATFORM (win32|darwin|linux), ARCH, METADATA_PATH (latest*.yml),
 #      INSTALLER_PATH, optional BLOCKMAP_PATH, optional HANDS_CHANNEL.
