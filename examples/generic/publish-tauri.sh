@@ -13,7 +13,7 @@ set -euo pipefail
 
 : "${HANDS_BEARER_TOKEN:?}" "${HANDS_APP_SLUG:?}" "${VERSION:?}" "${TAURI_BUNDLES:?}"
 
-npm install -g @botiverse/hands-cli@0.5.8 >/dev/null
+npm install -g @botiverse/hands-cli@0.5.9 >/dev/null
 
 if [ -n "${CHANGELOG_PATH:-}" ]; then
   changelog="$CHANGELOG_PATH"
@@ -24,7 +24,7 @@ else
 fi
 
 ARGS=(
-  --version "$VERSION"
+  --version-name "$VERSION"
   --channel "${HANDS_CHANNEL:-main}"
   --changelog-file "$changelog"
 )
@@ -43,4 +43,3 @@ while IFS= read -r entry; do
 done <<< "$TAURI_BUNDLES"
 
 hands builds publish-tauri "$HANDS_APP_SLUG" "${ARGS[@]}"
-
