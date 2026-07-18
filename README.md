@@ -53,6 +53,9 @@ deliberate review step.
 - [`publish-existing-apk.yml`](examples/github-actions/publish-existing-apk.yml)
   publishes an APK produced by an earlier job or downloaded from another build
   system.
+- [`tauri-publish.yml`](examples/github-actions/tauri-publish.yml) builds signed
+  Tauri v2 updater bundles on macOS, Linux, and Windows, then publishes one
+  multi-platform Hands draft on a single channel.
 
 Copy the selected file into your repository under `.github/workflows/`, then
 replace the app slug, Gradle task, and APK path.
@@ -115,12 +118,23 @@ export HANDS_BEARER_TOKEN='<publisher deploy token>'
 - [`examples/generic/publish-electron.sh`](examples/generic/publish-electron.sh)
   — env-driven, run once per platform, each into its own platform channel.
 
+## Tauri
+
+- [`examples/github-actions/tauri-publish.yml`](examples/github-actions/tauri-publish.yml)
+  — three-platform build matrix followed by one draft publish job. Tauri's
+  signing private key stays in GitHub Actions secrets; Hands receives only the
+  updater bundles and `.sig` text.
+- [`examples/generic/publish-tauri.sh`](examples/generic/publish-tauri.sh)
+  — publish an already-built set of `target=path` bundles from any CI. Unlike
+  Electron generic-provider releases, all Tauri targets share one Hands channel
+  because the dynamic endpoint selects `target` and `arch`.
+
 ## Any other CI
 
 - [`examples/generic/publish-android.sh`](examples/generic/publish-android.sh)
 - [`examples/generic/publish-ios.sh`](examples/generic/publish-ios.sh)
 - [`examples/generic/publish-electron.sh`](examples/generic/publish-electron.sh)
+- [`examples/generic/publish-tauri.sh`](examples/generic/publish-tauri.sh)
 
 Plain shell, driven by environment variables — drop into Jenkins, Buildkite,
 or anything that can run bash and npm.
-
