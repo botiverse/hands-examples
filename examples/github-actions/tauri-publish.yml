@@ -77,7 +77,7 @@ jobs:
           path: bundles
 
       - name: Install Hands CLI
-        run: npm install -g @botiverse/hands-cli@0.5.8
+        run: npm install -g @botiverse/hands-cli@0.5.9
 
       - name: Publish one multi-platform draft
         shell: bash
@@ -87,7 +87,7 @@ jobs:
           set -euo pipefail
           git log --no-merges --pretty='- %s' -15 > changelog.txt
           ARGS=(
-            --version "${{ inputs.version }}"
+            --version-name "${{ inputs.version }}"
             --channel "${{ inputs.channel }}"
             --changelog-file ./changelog.txt
           )
@@ -98,4 +98,3 @@ jobs:
             ARGS+=(--bundle "$bundle" --signature "${bundle}.sig" --target "$target")
           done
           hands builds publish-tauri "$HANDS_APP_SLUG" "${ARGS[@]}"
-
