@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate shell syntax
+        run: |
+          bash -n \
+            scripts/publish-android.sh \
+            scripts/validate-android-native-symbols.sh \
+            examples/generic/*.sh \
+            tests/*.sh
+
+      - name: Run Android native-symbol fixtures
+        run: tests/test-validate-android-native-symbols.sh
+
+      - name: Parse YAML examples
+        run: |
+          python3 -m pip install --disable-pip-version-check 'pyyaml==6.0.2'
+          python3 - <<'PY'
+          import glob
+          import yaml
+
+          paths = [
+              "publish-android/action.yml",
+              *glob.glob("examples/github-actions/*.yml"),
+              *glob.glob("examples/gitlab-ci/*.yml"),
+              *glob.glob(".github/workflows/*.yml"),
+          ]
+          for path in paths:
+              with open(path, encoding="utf-8") as handle:
+                  yaml.safe_load(handle)
+          PY

@@ -21,12 +21,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Replace this step with actions/download-artifact, a release download,
-      # or your build system's artifact fetch command.
-      - name: Fetch signed APK
+      # Replace this step with actions/download-artifact or your build system's
+      # artifact fetch command. Fetch the APK and native-symbols archive from
+      # the same immutable build; symbols cannot be reconstructed from an APK.
+      - name: Fetch signed APK and exact native symbols
         run: |
           mkdir -p dist
           cp path/to/your/signed-app.apk dist/app-release.apk
+          cp path/to/the-same-build/native-symbols.zip dist/native-symbols.zip
 
       - name: Publish draft to Hands
         uses: botiverse/hands-examples/publish-android@v1
@@ -36,5 +38,6 @@ jobs:
           channel: preview
           version-name: ${{ inputs.version_name }}
           version-code: ${{ inputs.version_code }}
+          symbols: dist/native-symbols.zip
+          native-symbols-policy: required
           hands-token: ${{ secrets.HANDS_BEARER_TOKEN }}
-
