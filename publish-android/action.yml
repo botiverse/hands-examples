@@ -27,9 +27,13 @@ inputs:
     required: false
     default: ""
   symbols:
-    description: Optional native symbols archive.
+    description: Exact Hands native-symbols classifier archive for this APK.
     required: false
     default: ""
+  native-symbols-policy:
+    description: auto requires symbols when the APK contains libhandscrash.so; required always requires them; disabled opts out explicitly.
+    required: false
+    default: auto
   metadata:
     description: Optional JSON metadata file.
     required: false
@@ -48,7 +52,7 @@ inputs:
   cli-version:
     description: Version of @botiverse/hands-cli to install.
     required: false
-    default: 0.5.1
+    default: 0.5.4
 
 runs:
   using: composite
@@ -58,13 +62,22 @@ runs:
       env:
         INPUT_APK: ${{ inputs.apk }}
         INPUT_DRAFT: ${{ inputs.draft }}
+        INPUT_MAPPING: ${{ inputs.mapping }}
+        INPUT_SYMBOLS: ${{ inputs.symbols }}
+        INPUT_METADATA: ${{ inputs.metadata }}
+        INPUT_NATIVE_SYMBOLS_POLICY: ${{ inputs.native-symbols-policy }}
       run: |
         set -euo pipefail
         test -s "$INPUT_APK" || { echo "APK not found or empty: $INPUT_APK" >&2; exit 1; }
+        test -z "$INPUT_MAPPING" || test -s "$INPUT_MAPPING" || { echo "Mapping not found or empty: $INPUT_MAPPING" >&2; exit 1; }
+        test -z "$INPUT_METADATA" || test -s "$INPUT_METADATA" || { echo "Metadata not found or empty: $INPUT_METADATA" >&2; exit 1; }
         case "$INPUT_DRAFT" in
           true|false) ;;
           *) echo "draft must be true or false" >&2; exit 1 ;;
         esac
+        validate_args=(--apk "$INPUT_APK" --policy "$INPUT_NATIVE_SYMBOLS_POLICY")
+        test -z "$INPUT_SYMBOLS" || validate_args+=(--symbols "$INPUT_SYMBOLS")
+        "$GITHUB_ACTION_PATH/../scripts/validate-android-native-symbols.sh" "${validate_args[@]}"
 
     - name: Install Hands CLI
       shell: bash
@@ -102,4 +115,3 @@ runs:
         test -z "$INPUT_METADATA" || args+=(--metadata "$INPUT_METADATA")
         test "$INPUT_DRAFT" != true || args+=(--draft)
         hands "${args[@]}"
-

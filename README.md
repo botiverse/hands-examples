@@ -22,6 +22,67 @@ Copy-ready CI examples and reusable actions for publishing app builds to
 Hands is the release and distribution layer. Your own build system remains
 responsible for compiling and signing the APK, IPA, or other artifact.
 
+## Android native symbols are part of the build
+
+If an APK contains the Hands Android SDK's `libhandscrash.so`, its exact
+`native-symbols` classifier is a required release artifact. The AAR and APK
+contain a stripped library; repacking that file after the build does **not**
+restore function or source information.
+
+Add a resolvable classifier configuration beside the dependency in your Android
+app module. This GitHub Packages example deliberately uses one version variable
+for both artifacts:
+
+```kotlin
+val handsAndroidSdkVersion = "0.11.2" // keep this as your single source of truth
+val handsNativeSymbols by configurations.creating {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+    isTransitive = false
+}
+
+val copyHandsNativeSymbols by tasks.registering(Sync::class) {
+    from(handsNativeSymbols)
+    into(layout.buildDirectory.dir("outputs/hands-native-symbols"))
+}
+
+dependencies {
+    implementation("build.hands:hands-android-sdk:$handsAndroidSdkVersion")
+    add(
+        handsNativeSymbols.name,
+        "build.hands:hands-android-sdk:$handsAndroidSdkVersion:native-symbols@zip",
+    )
+}
+```
+
+For JitPack, keep the AAR and classifier on JitPack rather than mixing channels:
+
+```kotlin
+implementation("com.github.botiverse:hands:android-sdk-v$handsAndroidSdkVersion")
+add(
+    handsNativeSymbols.name,
+    "com.github.botiverse:hands:android-sdk-v$handsAndroidSdkVersion:native-symbols@zip",
+)
+```
+
+Run `assembleRelease` and `copyHandsNativeSymbols` in the same build. The
+validator then enforces all of the following before Hands receives anything:
+
+- every APK ABI containing `libhandscrash.so` exists in the archive;
+- APK, archive, and `manifest.json` ELF build IDs match per ABI;
+- manifest SHA-256 values match the unstripped files;
+- each symbol file contains `.debug_info`.
+
+The reusable action defaults to `native-symbols-policy: auto`: an APK containing
+`libhandscrash.so` fails when `symbols` is missing. APKs without the Hands native
+crash library do not need this archive. `disabled` is an explicit opt-out that
+leaves future native crashes unsymbolicatable; do not use it to make a release
+green.
+
+For split or external build jobs, transport the APK and classifier archive as
+one immutable artifact set. Never download an APK and generate “symbols” from
+its stripped libraries later.
+
 ## GitHub Actions
 
 ### Reusable Android publish action
@@ -39,6 +100,8 @@ uploads an already-built, signed APK and creates a draft release:
     version-name: ${{ github.ref_name }}
     version-code: ${{ github.run_number }}
     changelog-file: changelog.txt
+    symbols: path/to/the-resolved/hands-native-symbols.zip
+    native-symbols-policy: required
     hands-token: ${{ secrets.HANDS_BEARER_TOKEN }}
 ```
 
@@ -51,8 +114,8 @@ deliberate review step.
   Gradle Android project, signs it through the project's existing release
   configuration, and publishes the resulting APK as a Hands draft.
 - [`publish-existing-apk.yml`](examples/github-actions/publish-existing-apk.yml)
-  publishes an APK produced by an earlier job or downloaded from another build
-  system.
+  publishes an APK and its exact native-symbol archive produced by an earlier
+  job or downloaded from another build system.
 - [`tauri-publish.yml`](examples/github-actions/tauri-publish.yml) builds signed
   Tauri v2 updater bundles on macOS, Linux, and Windows, then publishes one
   multi-platform Hands draft on a single channel.
@@ -74,7 +137,9 @@ export HANDS_BEARER_TOKEN='<publisher deploy token>'
   --channel preview \
   --version-name 1.0.0 \
   --version-code 1000000 \
-  --changelog ./changelog.txt
+  --changelog ./changelog.txt \
+  --symbols ./hands-android-sdk-native-symbols.zip \
+  --native-symbols-policy required
 ```
 
 ## Security boundary
@@ -82,6 +147,8 @@ export HANDS_BEARER_TOKEN='<publisher deploy token>'
 - Use an app-scoped `publisher` deploy token for CI.
 - Store tokens only in the CI platform's encrypted secret store.
 - Examples create draft releases by default.
+- Android examples validate exact native symbols before upload; validation runs
+  locally and does not expose symbol bytes or credentials to another service.
 - Never commit signing material, deploy tokens, or generated credentials.
 
 ## Reference
@@ -93,7 +160,8 @@ export HANDS_BEARER_TOKEN='<publisher deploy token>'
 ## GitLab CI
 
 - [`examples/gitlab-ci/android-publish.gitlab-ci.yml`](examples/gitlab-ci/android-publish.gitlab-ci.yml)
-  — build stage placeholder + draft publish with `hands builds publish-android`.
+  — same-build APK + exact classifier transport, build-ID validation, then draft
+  publish with `hands builds publish-android`.
 - [`examples/gitlab-ci/ios-publish.gitlab-ci.yml`](examples/gitlab-ci/ios-publish.gitlab-ci.yml)
   — IPA + dSYM draft publish; TestFlight upload happens server-side in Hands
   afterwards.
@@ -136,5 +204,6 @@ export HANDS_BEARER_TOKEN='<publisher deploy token>'
 - [`examples/generic/publish-electron.sh`](examples/generic/publish-electron.sh)
 - [`examples/generic/publish-tauri.sh`](examples/generic/publish-tauri.sh)
 
-Plain shell, driven by environment variables — drop into Jenkins, Buildkite,
-or anything that can run bash and npm.
+Plain shell, driven by environment variables. Keep the Android wrapper beside
+this repository's `scripts/` directory so it can run the shared validator; the
+other platform scripts can be copied independently.
