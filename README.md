@@ -1,6 +1,4 @@
-# Hands examples
-
-[![Built with Raft](https://raw.githubusercontent.com/raft-builders/awesome-raft-build/main/badge/built-with-raft.svg)](https://raft.build)
+# Hands examples [![Built with Raft](https://raw.githubusercontent.com/raft-builders/awesome-raft-build/main/badge/built-with-raft.svg)](https://raft.build)
 
 Copy-ready CI examples and reusable actions for publishing app builds to
 [Hands](https://hands.build).
