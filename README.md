@@ -1,5 +1,10 @@
 # Hands examples [![Built with Raft](https://raw.githubusercontent.com/raft-builders/awesome-raft-build/main/badge/built-with-raft.svg)](https://raft.build)
 
+> **Moved.** These examples now live in the Hands repository:
+> [botiverse/hands/examples](https://github.com/botiverse/hands/tree/main/examples).
+> Use `uses: botiverse/hands/examples/publish-android@examples-v1` in new workflows.
+> Existing workflows using `botiverse/hands-examples/publish-android@v1` keep working.
+
 Copy-ready CI examples and reusable actions for publishing app builds to
 [Hands](https://hands.build).
 
